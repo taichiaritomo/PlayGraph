@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+  <title>PlayGraph via Spotify</title>
+
+  <!-- Stylesheets -->
+  <!-- CSS -->
+  <link rel="stylesheet" href="main.css">
+
+  <!-- Script Packages -->
+  <!-- jQuery -->
+  <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+  <!-- Handlebars -->
+<!--  <script src="http://cdnjs.cloudflare.com/ajax/libs/handlebars.js/2.0.0-alpha.1/handlebars.min.js"></script>-->
+  <!-- Paper.js -->
+<!--  <script type="text/javascript" src="paper-full.min.js"></script>-->
+  <!-- d3.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js" charset="utf-8"></script>
+  <!-- venn.js -->
+  <script type="text/javascript" src="venn.js"></script>
+  <!-- underscore.js -->
+  <script type="text/javascript" src="underscore.js"></script>
+
+  <!-- Fontkit (Europa font)-->
+<!--
+  <script src="//use.typekit.net/lzl3cuz.js"></script>
+  <script>
+    try {
+      Typekit.load();
+    } catch (e) {}
+  </script>
+-->
+  <style type="text/css">
+    #login, #loggedin {
+      display: none;
+    }
+    .text-overflow {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      width: 500px;
+    }
+  </style>
+</head>
+
+<body>
+<!--
+  <div id="hovergram">
+    <div id="playlistbox"></div>
+    <div id="toolkit">
+      <div id="plus-btn"></div>
+      <div id="reverse-btn"></div>
+    </div>
+  </div>
+-->
+  
+  <div class="container">
+    
+    
+    <div id="login">
+      
+      <h1><u>PlayGraph</u></h1>
+      <p>Some songs belong in more than one playlist.</p>
+      <button id="login-button">Log in to Spotify</div>
+      
+    </div>
+    
+    <div id="loggedin">
+      <div id="venn"></div>
+      
+      <div id="plus-btn">+
+      </div>
+      
+      <div id="menu">
+        <ul>
+        </ul>
+      </div>
+      
+      <div id="sidebar">
+        <iframe id="playbutton" src="" width="250" height="80" frameborder="0" allowtransparency="true"></iframe>
+        
+        <!-- filler for space beneath playbutton -->
+        <div style="width: 250px; height: 80px;"></div>
+        
+        <ul>
+        </ul>
+      </div>
+ 
+      
+<!--
+      <div id="playlists">
+      </div>
+      <div id="user-profile">
+      </div>
+      <div id="oauth">
+      </div>
+-->
+      
+    </div>
+    
+  </div>
+ 
+  
+  
+  
+  
+  
+  
+  <script id="user-profile-template" type="text/x-handlebars-template">
+    <h1>Logged in as {{display_name}}</h1>
+    <div class="media">
+      <div class="pull-left">
+        <img class="media-object" width="150" src="{{images.0.url}}" />
+      </div>
+      <div class="media-body">
+        <dl class="dl-horizontal">
+          <dt>Display name</dt><dd class="clearfix">{{display_name}}</dd>
+          <dt>Id</dt><dd>{{id}}</dd>
+          <dt>Spotify URI</dt><dd><a href="{{external_urls.spotify}}">{{external_urls.spotify}}</a></dd>
+          <dt>Link</dt><dd><a href="{{href}}">{{href}}</a></dd>
+          <dt>Profile Image</dt><dd class="clearfix"><a href="{{images.0.url}}">{{images.0.url}}</a></dd>
+          <dt>Country</dt><dd>{{country}}</dd>
+        </dl>
+      </div>
+    </div>
+  </script>
+
+  <script id="oauth-template" type="text/x-handlebars-template">
+    <h2>oAuth info</h2>
+    <dl class="dl-horizontal">
+      <dt>Access token</dt><dd class="text-overflow">{{access_token}}</dd>
+    </dl>
+  </script>
+  
+  <script id="playlists-template" type="text/x-handlebars-template">
+    <h1>Playlists</h1>
+    {{#list items}}{{name}}{{/list}}
+  </script>
+  
+<!--
+  <script id="playlist-open-1-template" type="text/x-handlebars-template">
+    <h1>{{name}}</h1>
+
+    {{#with tracks}}
+      {{#list items}}
+        <img class="album-artwork" src="{{track.album.images.[2].url}}"/>
+        <div class="info">
+          <span class="track-title">{{track.name}}</span><br>
+          <span class="track-artist">{{#concat track.artists}}{{name}}{{/concat}} - {{track.album.name}}</span>
+        </div>
+      {{/list}}
+    {{/with}}
+  </script>
+  
+  <script id="playlist-open-2-template" type="text/x-handlebars-template">
+    <h1>{{name}}</h1>
+
+    {{#with tracks}}
+      {{#list items}}
+        <img class="album-artwork" src="{{track.album.images.[2].url}}"/>
+        <div class="info">
+          <span class="track-title">{{track.name}}</span><br>
+          <span class="track-artist">{{#concat track.artists}}{{name}}{{/concat}} - {{track.album.name}}</span>
+        </div>
+      {{/list}}
+    {{/with}}
+  </script>
+-->
+  
+
+  
+  <!-- utility methods -->
+  <script src="utility.js"></script>
+  <!-- PlayGraph object -->
+  <script src="PlayGraph.js"></script>
+  <!-- VennSets object -->
+  <script src="VennSets.js"></script>
+  <!-- EditStack object -->
+  <!-- App -->
+  <script src="app.js"></script>
+  <script src="binary.js"></script>
+</body>
+  
+</html>
+
+<!--
+Spotify
+PlaySet
+
+IDEAS
+
+MORE BUBBLES MORE FUN! View up to 8 bubbles.
+
+DEFAULT: All are selected. random shuffle. Deselect to create a playlist.
+Reveals what the purpose is right away. 
+
+Glassy rainbow rendering motif.
+Bubbles can be random rainbow gradients, above other random rainbow gradients
+mixture background.
+
+OnLoad: look for two playlists that intersect. Search through all tracks
+for a containingplaylists object that contains more than one key...take
+those two playlists. Take another random one.
+
+FUCK SIDEBARS! I'll add a slide-in one on the right.
+List tracks, host widget.
+
+Hovergram is giant transparent text that narrates as you select.
+We don't need to support typing functions for touch screens.
+
+Plus-btn turns into the new playlist. a new plus button pops into
+its place. When the new playlist moves in, the least relevant
+playlist flies out of view. The new playlist has a minimum radius
+for its venn diagram representation...named "untitled"
+
+Play button: reserach if i can simply take them to a link that'll autoplay
+it in the spotify app with the play button. 
+
+TOOLKIT                       CONTROLS
+(+)           (|)             (>)    (*)    (=)
+add playlist  invert          play   save   tracks
+
+add playlist button opens a menu that expands from inside the button:
+ - New playlist
+     ... existing playlists
+The menu will highlighted the currently active playlists.
+Selecting a playlist that isn't active yet will cause the button
+to move toward its location as the playlist. with the menu becoming
+the new button.
+
+Hover over a track, it waves out of the rest of the list and
+highlights the playlists that it's contained in. 
+
+
+
+Set simplification algorithm
+Play anything
+Play anything except A
+Play anything from A or B
+
+All ^ !A -> Play anything except from A.
+All ^ !A || A -> All
+
+X! || X = All
+X ^ X! = 0
+All ^ !A ^ !B
+
+
+-->
