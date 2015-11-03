@@ -53,7 +53,7 @@ var access_token = params.access_token,
     state = params.state,
     storedState = localStorage.getItem(stateKey);
 if (access_token && (state == null || state !== storedState)) {
-  window.location = '/index.html';
+  window.location = '/PlaySet/';
   console.log('Access token reset');
 } else {
   localStorage.removeItem(stateKey);
@@ -382,14 +382,6 @@ if (access_token && (state == null || state !== storedState)) {
             menu.classed("closed", !menu.classed("closed"));
             plusbtn.classed("rotated", !plusbtn.classed("rotated"));
           });
-          
-          
-          
-          
-          
-          
-          
-          
 
           // Initialize priority score data structures
 //          for (playlistID in Object.keys(myPlayGraph.playlists)) {
