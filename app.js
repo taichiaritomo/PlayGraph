@@ -205,7 +205,7 @@ if (access_token && (state == null || state !== storedState)) {
           });
       }
       $("#sidebar").animate({ scrollTop: $("#sidebar")[0].scrollHeight}, 500);
-       PLAYBUTTON IFRAME UPDATE
+//       PLAYBUTTON IFRAME UPDATE
       if (tracks.length > 0) {
         console.log("https://embed.spotify.com/?uri=spotify:trackset:PLAYSET:" + tracks.join(","));
         iframe
