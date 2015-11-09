@@ -90,7 +90,7 @@ function VennSets(playlists) {
   this.addPlaylist = function(p, t) {
     if (emptyDigits.length == 0) {
       console.log("Active playlist limit reached!");
-      return;
+      return false;
     }
     
     // assign empty digit to playlist from the right side of the emptyDigit array.
@@ -118,6 +118,8 @@ function VennSets(playlists) {
       selected : false
     };
     console.log("");
+    
+    return true;
   }
   
    
@@ -134,20 +136,14 @@ function VennSets(playlists) {
     var index = getSetIndex([p]);
     var indices = getAllIndicesContaining([p]);
     
-    // remove every setIntersections entry that involves playlist, mark songs that
-    // are only in playlist for removal from playSet.
-    var subtract = d3.set(setIntersections[index].set.values());
+    playSet = difference(playSet, setIntersections[index].set);
     
     for (var i = 0; i < indices.length; i++) {
-      if (indices[i] != index)
-        subtract = difference(subtract, setIntersections[indices[i]].set);
+      if (indices[i] != index && setIntersections[indices[i]].selected) {
+        playSet = union([playSet, setIntersections[indices[i]].set]);
+      }
       delete setIntersections[indices[i]];
     }
-    
-    playSet = difference(playSet, subtract);
-    
-//    console.log("setIntersections after removal");
-//    console.log(setIntersections);
     
     // reset digit availability
     var digit = playlistDigit[p];
