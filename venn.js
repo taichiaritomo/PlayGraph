@@ -82,7 +82,7 @@ var venn = venn || {'version' : '0.2.4'};
                 .style("fill-opacity", "0")
                 .filter(function (d) { return d.sets.length == 1; } )
                 .style("fill", function(d) { return colours(label(d)); })
-                .style("fill-opacity", ".25");
+                .style("fill-opacity", ".2");
 
             var enterText = enter.append("text")
                 .attr("class", "label")

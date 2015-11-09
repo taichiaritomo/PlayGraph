@@ -27,26 +27,6 @@ function generateRandomString(length) {
   }
   return text;
 };
-//var userProfileSource = document.getElementById('user-profile-template').innerHTML,
-//    userProfileTemplate = Handlebars.compile(userProfileSource),
-//    userProfilePlaceholder = document.getElementById('user-profile'),
-//
-//    oauthSource = document.getElementById('oauth-template').innerHTML,
-//    oauthTemplate = Handlebars.compile(oauthSource),
-//    oauthPlaceholder = document.getElementById('oauth'),
-//
-//    playlistsSource = document.getElementById('playlists-template').innerHTML,
-//    playlistsTemplate = Handlebars.compile(playlistsSource),
-//    playlistsPlaceholder = document.getElementById('playlists');
-
-//
-//      playlist_1_Source = document.getElementById('playlist-open-1-template').innerHTML,
-//      playlist_1_Template = Handlebars.compile(playlist_1_Source),
-//      playlist_1_Placeholder = document.getElementById('playlist-open-1'),
-//
-//      playlist_2_Source = document.getElementById('playlist-open-2-template').innerHTML,
-//      playlist_2_Template = Handlebars.compile(playlist_2_Source),
-//      playlist_2_Placeholder = document.getElementById('playlist-open-2');
 
 var params = getHashParams();
 var access_token = params.access_token,
@@ -54,6 +34,7 @@ var access_token = params.access_token,
     storedState = localStorage.getItem(stateKey);
 if (access_token && (state == null || state !== storedState)) {
   window.location = '/PlaySet/';
+//  window.location = '';
   console.log('Access token reset');
 } else {
   localStorage.removeItem(stateKey);
@@ -92,9 +73,10 @@ if (access_token && (state == null || state !== storedState)) {
       });
     };
     
-    function ajaxPost(url) {
+    function ajaxPost(url, data) {
       return $.ajax({
         url: url,
+        data: data,
         method: 'POST',
         headers: ajaxHeaders
       });
@@ -120,15 +102,27 @@ if (access_token && (state == null || state !== storedState)) {
                      + '/playlists/' + playlistID);
     }
     
+    function createPlaylist(name) {
+      ajaxPost('https://api.spotify.com/v1/users/' + user_id + '/playlists',
+               {"name": name})
+      .done()
+      .fail( function(errorResponse) {
+        window.alert(errorResponse);
+      });
+    }
+    
     function addTrack(trackID, playlistID) {
       var owner = myPlayGraph.playlists[playlistID].ownerID;
       var uri = myPlayGraph.tracks[trackID].uri;
-      ajaxPost('https://api.spotify.com/vi/users/' + owner 
-               + '/playlists/' + playlistID + '/tracks/uris=' + uri)
+      ajaxPost('https://api.spotify.com/v1/users/' + owner 
+               + '/playlists/' + playlistID + '/tracks', 
+               {"uris": [uri]})
       .done( function(snapshot) {
         // update priority scores
-        // update PlayGraph
-        // update VennSets object
+        console.log(snapshot);
+        myPlayGraph.addTrack(trackID, playlistID);
+        myVennSets.addTrack(playlistID, trackID);
+        updateChart();
       }).fail( function(errorResponse) {
         // Error code 403 for forbidden access if user is not authorized 
         // to add to playlist
@@ -136,6 +130,26 @@ if (access_token && (state == null || state !== storedState)) {
       });
     }
     
+    
+    // Debounces external UI effects on drag events.
+    function debounceDragEffects(status) {
+      _.debounce(dragEffects, 250)(status);
+    }
+    
+    // Performs external UI effects on drag events.
+    function dragEffects(status) {
+      if (status) {
+        d3.select("body").transition().duration(250).style("background", "#efa2a2");
+      } else {
+        d3.select("body").transition().duration(250).style("background", "#b7e3b7");
+      }
+    }
+    
+    var dragTrack = null;
+    
+    function debounceSidebar() {
+      _.debounce(updateSidebar, 1000)();
+    }
     
     function updateSidebar() {
       sidebar.selectAll("li").remove();
@@ -145,11 +159,11 @@ if (access_token && (state == null || state !== storedState)) {
           .datum(tracks[i])
           .append("li")
           .html(function(d, i) {
-            var markup = "";
+            var markup = "<div draggable='true' class='content'>";
             markup += myPlayGraph.tracks[d].name;
             markup += "<br> <span class='artist'>"
-            markup += myPlayGraph.tracks[d].artists.join(",");
-            markup += "</span>"
+            markup += myPlayGraph.tracks[d].artists.join(", ");
+            markup += "</span></div>"
             return markup;
           })
           .on("mouseover", function(d, i) {
@@ -157,7 +171,7 @@ if (access_token && (state == null || state !== storedState)) {
             ids.forEach(function(element) {
               d3.select("#g" + myVennSets.playlistIndex(element)).select("path")
                 .transition().duration(250)
-                .style("stroke-width", 2)
+                .style("stroke-width", 1)
                 .style("stroke-opacity", 1)
                 .style("fill-opacity", 0.4);
             });
@@ -169,14 +183,33 @@ if (access_token && (state == null || state !== storedState)) {
                 .transition().duration(250)
                 .style("stroke-width", 0)
                 .style("stroke-opacity", 0)
-                .style("fill-opacity", 0.25);
+                .style("fill-opacity", 0.2);
             });
+          })
+          .on("dragstart", function(d, i) {
+//            console.log("Drag start, data: " + d);
+            d3.event.dataTransfer.setData("trackID", d);
+            d3.event.dataTransfer.effectAllowed = "copy";
+            var dragImg = document.createElement('div');
+            dragImg.setAttribute("class", "dragimg");
+            dragImg.innerHTML = 'Add "' + myPlayGraph.tracks[d].name + '" to ...';
+            document.body.appendChild(dragImg);
+            d3.event.dataTransfer.setDragImage(dragImg, 0, 0);
+            
+            dragTrack = d;
+            debounceDragEffects(true);
+          })
+          .on("dragend", function() {
+            dragTrack = null;
+            debounceDragEffects(false);
           });
       }
-//       PLAYBUTTON IFRAME UPDATE
+      $("#sidebar").animate({ scrollTop: $("#sidebar")[0].scrollHeight}, 500);
+       PLAYBUTTON IFRAME UPDATE
       if (tracks.length > 0) {
+        console.log("https://embed.spotify.com/?uri=spotify:trackset:PLAYSET:" + tracks.join(","));
         iframe
-          .attr("src", "https://embed.spotify.com/?uri=spotify:trackset:PREFEREDTITLE:" + tracks.join(","));
+          .attr("src", "https://embed.spotify.com/?uri=spotify:trackset:PLAYSET:" + tracks.join(","));
       } else {
         iframe
           .attr("src", "");
@@ -198,14 +231,12 @@ if (access_token && (state == null || state !== storedState)) {
 
       div.selectAll("path")
         .style("stroke-opacity", 0)
-        .style("stroke", "#fff")
+        .style("stroke", "white")
         .style("stroke-width", 0)
         .style("fill", function(d, i) {
           return d.selected ? "white" : "gray";
         })
-        .style("fill-opacity", function(d, i) {
-          return 0.125 + d.ids.length/maxActive*0.5;
-        });
+        .style("fill-opacity", 0.2);
 
       div.selectAll("g")
         .attr("id", function(d) { return "g" + d.index; })
@@ -220,9 +251,12 @@ if (access_token && (state == null || state !== storedState)) {
           // highlight the current path
           var selection = d3.select(this).transition("tooltip").duration(250);
           selection.select("path")
-            .style("stroke-width", 2)
-            .style("fill-opacity", d.sets.length == 1 ? .4 : .4)
-            .style("stroke-opacity", 1);
+            .style("stroke", function(d, i) {
+              return d.selected ? "white" : "gray";
+            })
+            .style("stroke-width", 1)
+            .style("stroke-opacity", 1)
+            .style("fill-opacity", 0.4);
         }).on("mousemove", function () {
           tooltip
             .style("left", (d3.event.pageX) + "px")
@@ -231,14 +265,10 @@ if (access_token && (state == null || state !== storedState)) {
           tooltip.transition().duration(250).style("opacity", 0);
           var selection = d3.select(this).transition("tooltip").duration(250);
           selection.select("path")
-            .style("stroke-width", 0)
-            .style("fill-opacity", 0.125 + d.ids.length/maxActive*0.5)
-//            .style("fill-opacity", d.sets.length == 1 ? .25 : .0)
-            .style("stroke-opacity", 0);
+            .style("stroke-width", 0).style("fill-opacity", 0.2).style("stroke-opacity", 0);
         }).on("click", function(d, i) {
           if (d.selected) {
             myVennSets.deselectSet(d.ids);
-            
             var indices = myVennSets.getAllIndicesContaining(d.ids);
             indices.forEach(function(element) {
               div.selectAll("#g" + element)
@@ -246,8 +276,10 @@ if (access_token && (state == null || state !== storedState)) {
                   data2.selected = false;
                   return data2;
                 })
-                .select("path").style("fill", "gray")
-                .style("fill-opacity", 0.125 + d.ids.length/maxActive*0.5);
+                .select("path")
+                .style("fill", "gray")
+                .style("fill-opacity", 0.4)
+                .style("stroke", "gray");
             });
           } else {
             myVennSets.selectSet(d.ids);
@@ -260,10 +292,55 @@ if (access_token && (state == null || state !== storedState)) {
                 })
                 .select("path")
                 .style("fill", "white")
-                .style("fill-opacity", 0.125 + d.ids.length/maxActive*0.5);
+                .style("fill-opacity", 0.4)
+                .style("stroke", "white");
             });
           }
-          updateSidebar();
+        debounceSidebar();
+        })
+        .on("dragenter", function(d, i) {
+          if (!d.tracks.has(dragTrack)) {
+            // indicator
+            d3.event.preventDefault();
+            console.log("Drag has entered");
+            console.log(d.ids);
+            d.ids.forEach(function(element) {
+              d3.select("#g" + myVennSets.playlistIndex(element)).select("path")
+                .transition().duration(250)
+                .style("stroke-opacity", 1)
+                .style("stroke-width", 1)
+                .style("fill-opacity", 0.4);
+            });
+          }
+        })
+        .on("dragover", function(d, i) {
+          if (!d.tracks.has(dragTrack)) {
+            d3.event.preventDefault();
+            console.log("Drag is hovering");
+          }
+        })
+        .on("dragleave", function(d, i) {
+          if (!d.tracks.has(dragTrack)) {
+            d3.event.preventDefault();
+            console.log("Drag has left");
+            console.log(d.ids);
+            d.ids.forEach(function(element) {
+              d3.select("#g" + myVennSets.playlistIndex(element)).select("path")
+                .transition().duration(250)
+                .style("stroke-opacity", 0)
+                .style("stroke-width", 0)
+                .style("fill-opacity", 0.2);
+            });
+          }
+        })
+        .on("drop", function(d, i) {
+          var data = d3.event.dataTransfer.getData("trackID");
+          console.log('Attempting to add "' + myPlayGraph.tracks[data].name + '" to ' + d.ids.map(
+            function(el) {
+              return myPlayGraph.playlists[el].name
+            }).join(", "));
+          d.ids.forEach(function(element) { addTrack(data, element); });
+          d3.event.preventDefault();
         })
         .selectAll("text").style("fill", "white");
     }
@@ -279,10 +356,12 @@ if (access_token && (state == null || state !== storedState)) {
     
     // Show playlist on venn diagram. Update data with new API call.
     function showPlaylist(playlistID) {
-      myVennSets.addPlaylist(
+      var action = myVennSets.addPlaylist(
         playlistID, 
         Object.keys(myPlayGraph.playlists[playlistID].containedTracks)
       );
+      
+      if (!action) return false;
       
       // UI-animations
       plusbtn.classed("hidden", true);
@@ -291,6 +370,7 @@ if (access_token && (state == null || state !== storedState)) {
       }, 500);
       
       updateChart();
+      return true;
     }
     
     // Hide playlist on venn diagram.
@@ -299,9 +379,11 @@ if (access_token && (state == null || state !== storedState)) {
       if (!action)
         return false; // can't remove last playlist
       updateChart();
-      if (!sidebar.selectAll("ul li").empty()) {
-        updateSidebar();
-      }
+//      if (!sidebar.selectAll("ul li").empty()) {
+//        updateSidebar();
+//      }
+//      _.debounce(updateSidebar, 1000);
+      debounceSidebar();
       return true;
     }
     
@@ -400,6 +482,7 @@ if (access_token && (state == null || state !== storedState)) {
   document.getElementById('login-button').addEventListener('click', function() {
     var client_id = '173e56dc6f4f4f7bac61397e362bd814'; // Your client id
     var redirect_uri = 'http://taichiaritomo.github.io/PlaySet/'; // Your redirect uri
+//    var redirect_uri = 'http://127.0.0.1:62785/'; // Testing URI
     var state = generateRandomString(16);
     localStorage.setItem(stateKey, state);
     var scope = 'user-read-private user-library-read playlist-modify-public playlist-read-collaborative playlist-modify-private';

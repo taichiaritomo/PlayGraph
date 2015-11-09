@@ -5,10 +5,10 @@
 }
 
 html, body {
-  background: #CAE9CA;
+  background: #b7e3b7;
   font-family: -apple-system, 'Avenir', sans-serif;
   font-size: 14px;
-  font-weight: 400;
+  font-weight: 600;
   margin: 0;
   overflow: hidden;
 }
@@ -92,7 +92,8 @@ h1 {
   background: rgba(249, 249, 249, 0.8);
   border: 0;
   border-radius: 4px;
-  color: darkgray;
+  color: #c1c1c1;
+  font-weight: 600;
   left: 20px;
   bottom: 70px;
   max-height: 200px;
@@ -100,7 +101,7 @@ h1 {
   overflow-x: hidden;
   overflow-y: scroll;
   position: absolute;
-  transition: all 0.75s cubic-bezier(.87,-.41,.19,1.44);
+  transition: all 0.5s cubic-bezier(.87,-.41,.19,1.44);
   width: 180px;
 }
 
@@ -125,15 +126,15 @@ h1 {
 }
 
 #menu li:hover {
-  color: gray;
+  color: darkgray;
 }
 
 #menu li.selected {
-  color: darkblue;
+  color: #8181e5;
 }
 
 #menu li.selected:hover {
-  color: gray;
+  color: darkgray;
 }
 
 
@@ -145,26 +146,27 @@ h1 {
 }
 
 #sidebar {
+  font-weight: 600;
   position: fixed;
   right: 0;
   top: 0;
   width: 250px;
   height: 100vh;
   background: #282828;
-  color: white;
+  color: #f4f4f4;
   overflow: scroll;
 }
 
 #sidebar ul {
   list-style-type: none;
-  padding: 10px;
-  margin: 0;
+  padding: 10px 0px;
 }
 
 #sidebar li {
-  border-bottom: 1px solid gray;
-  cursor: grab, default;
-  padding: 5px 0px;
+  cursor: default;
+  padding-left: 10px;
+  padding-right: 10px;
+  transition: background 0.25s linear;
   
   -moz-user-select: none; 
   -khtml-user-select: none; 
@@ -173,6 +175,27 @@ h1 {
   user-select: none;
 }
 
+#sidebar li:hover {
+  background: #1d1d1d;
+}
+
+#sidebar li .content {
+  padding: 5px 0;
+  border-bottom: 1px solid gray;
+}
+
 #sidebar .artist {
+  font-weight: 400;
   color: gray;
+}
+
+.dragimg {
+  background: #282828; 
+  color: #f4f4f4;
+  opacity: 0.5;
+  padding: 5px 10px 5px 10px;
+  pointer-events: none;
+  position: absolute;
+  top: -100px;
+  width: 250px;
 }
