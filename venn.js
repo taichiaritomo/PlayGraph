@@ -23,6 +23,9 @@ var venn = venn || {'version' : '0.2.4'};
                 solution = venn.normalizeSolution(solution, orientation);
             }
             var circles = venn.scaleSolution(solution, width, height, padding);
+            console.log("CIRCLES: ");
+            console.log(circles);
+            console.log("");
             var textCentres = computeTextCentres(circles, data);
 
             // draw out a svg
@@ -59,7 +62,13 @@ var venn = venn || {'version' : '0.2.4'};
                                 'y' : start.y * (1 - t) + end.y * t,
                                 'radius' : start.radius * (1 - t) + end.radius * t};
                     });
-                    return venn.intersectionAreaPath(c);
+                    console.log("Datum:");
+                    console.log(d);
+                    console.log("Path:");
+                    var path = venn.intersectionAreaPath(c);
+                    console.log(path);
+                    console.log("");
+                    return path;
                 };
             };
 
@@ -80,6 +89,7 @@ var venn = venn || {'version' : '0.2.4'};
 
             enter.append("path")
                 .style("fill-opacity", "0")
+                .style("fill-rule", "evenodd")
                 .filter(function (d) { return d.sets.length == 1; } )
                 .style("fill", function(d) { return colours(label(d)); })
                 .style("fill-opacity", ".2");
@@ -98,6 +108,7 @@ var venn = venn || {'version' : '0.2.4'};
             var update = nodes.transition("venn").duration(hasPrevious ? duration : 0);
             update.select("path")
                 .attrTween("d", pathTween);
+//                .attrTween("clip-path", );
 
             var updateText = update.select("text")
                 .text(function (d) { return label(d); } )
@@ -511,6 +522,11 @@ var venn = venn || {'version' : '0.2.4'};
             }
             return ret.join(" ");
         }
+    };
+  
+    /** returns a svg path after clipping away all circles not involved. **/
+    venn.clipPath = function(circles) {
+      
     };
 })(venn);
 
