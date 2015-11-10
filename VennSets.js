@@ -160,14 +160,18 @@ function VennSets(playlists) {
   // Adds track to VennSets
   // Input: playlistID and trackID
   this.addTrack = function(playlistID, trackID) {
-    setIntersections[getSetIndex([playlistID])].set.add(trackID);
-    for (var s in setIntersections) {
-      var x = setIntersections[s];
-      if (!x.ids.hasOwnProperty(playlistID) && x.set.has(trackID)) {
-        var index = getSetIndex(x.ids.concat([playlistID]));
-        setIntersections[index].set.add(trackID);
-      }
-    }
+//    setIntersections[getSetIndex([playlistID])].set.add(trackID);
+    var indices = getAllIndicesContaining([playlistID]);
+    indices.forEach(function(element) {
+      setIntersections[element].set.add(trackID);
+    });
+//    for (var s in setIntersections) {
+//      var x = setIntersections[s];
+//      if (!x.ids.hasOwnProperty(playlistID) && x.set.has(trackID)) {
+//        var index = getSetIndex(x.ids.concat([playlistID]));
+//        setIntersections[index].set.add(trackID);
+//      }
+//    }
   }
   
   
@@ -186,9 +190,9 @@ function VennSets(playlists) {
   // and all regions inside that region. 
   // Input: an array of playlistIDs
   this.selectSet = function(p) {
-    console.log("Given playlistIDs: " + p.join(", "));
+//    console.log("Given playlistIDs: " + p.join(", "));
     var indices = getAllIndicesContaining(p);
-    console.log("indices changed are " + indices.join(", "));
+//    console.log("indices changed are " + indices.join(", "));
     indices.forEach(function(x) {
       setIntersections[x].selected = true;
     });

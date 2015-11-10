@@ -62,6 +62,10 @@ if (access_token && (state == null || state !== storedState)) {
         menu = d3.select("#menu"),
         sidebar = d3.select("#sidebar ul"),
         iframe = d3.select("#playbutton");
+    
+    var green = "#b7e3b7",
+        pink = "#efa2a2";
+    var bgcolor = green;
         
     
     // AJAX methods using spotify authorization
@@ -74,8 +78,10 @@ if (access_token && (state == null || state !== storedState)) {
     };
     
     function ajaxPost(url, data) {
+      console.log(data);
       return $.ajax({
         url: url,
+        contentType: 'application/json',
         data: data,
         method: 'POST',
         headers: ajaxHeaders
@@ -107,16 +113,16 @@ if (access_token && (state == null || state !== storedState)) {
                {"name": name})
       .done()
       .fail( function(errorResponse) {
-        window.alert(errorResponse);
+        console.log(errorResponse);
       });
     }
     
     function addTrack(trackID, playlistID) {
       var owner = myPlayGraph.playlists[playlistID].ownerID;
       var uri = myPlayGraph.tracks[trackID].uri;
+      console.log("uri: " + uri);
       ajaxPost('https://api.spotify.com/v1/users/' + owner 
-               + '/playlists/' + playlistID + '/tracks', 
-               {"uris": [uri]})
+               + '/playlists/' + playlistID + '/tracks?uris=' + uri)
       .done( function(snapshot) {
         // update priority scores
         console.log(snapshot);
@@ -126,9 +132,28 @@ if (access_token && (state == null || state !== storedState)) {
       }).fail( function(errorResponse) {
         // Error code 403 for forbidden access if user is not authorized 
         // to add to playlist
-        window.alert(errorResponse);
+        console.log(errorResponse);
       });
     }
+    
+    // Highlight a venn region in UI
+    function renderRegion(selection, highlight) {
+      var datum = selection.datum();
+//      console.log("EVENT RECEIVED:");
+//      console.log("datum: ");
+//      console.log(datum);
+//      console.log("highlight: " + highlight);
+//      console.log("");
+      var fillOpacity = (highlight ? 0.4 : (datum.selected ? 0.2 : 0)),
+          strokeOpacity = ((datum.ids.length==1 && (highlight || !datum.selected)) || (datum.ids.length>1 && highlight && datum.selected) ? 1 : 0), 
+          strokeWidth = ((datum.ids.length==1 && (highlight || !datum.selected)) || (datum.ids.length>1 && highlight && datum.selected) ? 1 : 0),
+          strokeDashArray = (datum.selected ? "1, 0" : "1, 3");
+      selection.transition().duration(250)
+        .style("fill-opacity", fillOpacity)
+        .style("stroke-opacity", strokeOpacity)
+        .style("stroke-width", strokeWidth)
+        .style("stroke-dasharray", strokeDashArray);
+    };
     
     
     // Debounces external UI effects on drag events.
@@ -146,6 +171,7 @@ if (access_token && (state == null || state !== storedState)) {
     }
     
     var dragTrack = null;
+    var dragSets = {};
     
     function debounceSidebar() {
       _.debounce(updateSidebar, 1000)();
@@ -169,21 +195,15 @@ if (access_token && (state == null || state !== storedState)) {
           .on("mouseover", function(d, i) {
             var ids = Object.keys(myPlayGraph.tracks[d].containingPlaylists);
             ids.forEach(function(element) {
-              d3.select("#g" + myVennSets.playlistIndex(element)).select("path")
-                .transition().duration(250)
-                .style("stroke-width", 1)
-                .style("stroke-opacity", 1)
-                .style("fill-opacity", 0.4);
+              var selection = d3.select("#g" + myVennSets.playlistIndex(element)).select("path");
+              renderRegion(selection, true);
             });
           })
           .on("mouseout", function(d, i) {
             var ids = Object.keys(myPlayGraph.tracks[d].containingPlaylists);
             ids.forEach(function(element) {
-              d3.select("#g" + myVennSets.playlistIndex(element)).select("path")
-                .transition().duration(250)
-                .style("stroke-width", 0)
-                .style("stroke-opacity", 0)
-                .style("fill-opacity", 0.2);
+              var selection = d3.select("#g" + myVennSets.playlistIndex(element)).select("path");
+              renderRegion(selection, false);
             });
           })
           .on("dragstart", function(d, i) {
@@ -197,17 +217,22 @@ if (access_token && (state == null || state !== storedState)) {
             d3.event.dataTransfer.setDragImage(dragImg, 0, 0);
             
             dragTrack = d;
+            Object.keys(myPlayGraph.tracks[d].containingPlaylists).forEach(function(element) {
+              dragSets[element] = 1;
+            });
             debounceDragEffects(true);
           })
           .on("dragend", function() {
             dragTrack = null;
             debounceDragEffects(false);
+            Object.keys(dragSets).forEach(function(element) {
+              dragSets[element] = 0;
+            });
           });
       }
       $("#sidebar").animate({ scrollTop: $("#sidebar")[0].scrollHeight}, 500);
 //       PLAYBUTTON IFRAME UPDATE
       if (tracks.length > 0) {
-        console.log("https://embed.spotify.com/?uri=spotify:trackset:PLAYSET:" + tracks.join(","));
         iframe
           .attr("src", "https://embed.spotify.com/?uri=spotify:trackset:PLAYSET:" + tracks.join(","));
       } else {
@@ -230,13 +255,12 @@ if (access_token && (state == null || state !== storedState)) {
       var tooltip = d3.select("body").append("div").attr("class", "venntooltip");
 
       div.selectAll("path")
-        .style("stroke-opacity", 0)
+        .style("fill", "white")
+        .style("fill-opacity", function(d, i) { return (d.selected ? 0.2 : 0); })
         .style("stroke", "white")
-        .style("stroke-width", 0)
-        .style("fill", function(d, i) {
-          return d.selected ? "white" : "gray";
-        })
-        .style("fill-opacity", 0.2);
+        .style("stroke-opacity", function(d, i) { return (d.ids.length==1 && !d.selected) ? 1 : 0; })
+        .style("stroke-width", function(d, i) { return d.ids.length == 1 && !d.selected ? 1 : 0; })
+        .style("stroke-dasharray", function(d, i) { return d.selected ? "1, 0" : "1, 3"; });
 
       div.selectAll("g")
         .attr("id", function(d) { return "g" + d.index; })
@@ -249,89 +273,91 @@ if (access_token && (state == null || state !== storedState)) {
           tooltip.text(d.size + " track" + (d.size == 1 ? "" : "s"));
 
           // highlight the current path
-          var selection = d3.select(this).transition("tooltip").duration(250);
-          selection.select("path")
-            .style("stroke", function(d, i) {
-              return d.selected ? "white" : "gray";
-            })
-            .style("stroke-width", 1)
-            .style("stroke-opacity", 1)
-            .style("fill-opacity", 0.4);
+          var selection = d3.select(this).select("path");
+          renderRegion(selection, true);
         }).on("mousemove", function () {
           tooltip
             .style("left", (d3.event.pageX) + "px")
             .style("top", (d3.event.pageY - 28) + "px");
         }).on("mouseout", function (d, i) {
           tooltip.transition().duration(250).style("opacity", 0);
-          var selection = d3.select(this).transition("tooltip").duration(250);
-          selection.select("path")
-            .style("stroke-width", 0).style("fill-opacity", 0.2).style("stroke-opacity", 0);
+          var selection = d3.select(this).select("path");
+          renderRegion(selection, false);
         }).on("click", function(d, i) {
           if (d.selected) {
             myVennSets.deselectSet(d.ids);
             var indices = myVennSets.getAllIndicesContaining(d.ids);
             indices.forEach(function(element) {
-              div.selectAll("#g" + element)
-                .datum(function(data2, i) {
-                  data2.selected = false;
-                  return data2;
-                })
-                .select("path")
-                .style("fill", "gray")
-                .style("fill-opacity", 0.4)
-                .style("stroke", "gray");
+              var selection = d3.select("#g" + element).select("path");
+              selection.datum(function(datum, i) {
+                datum.selected = false;
+                return datum;
+              });
+              renderRegion(selection, d.index==element);
             });
           } else {
+            console.log(d.index);
             myVennSets.selectSet(d.ids);
             var indices = myVennSets.getAllIndicesContaining(d.ids);
             indices.forEach(function(element) {
-              div.selectAll("#g" + element)
-                .datum(function(data2, i) {
-                  data2.selected = true;
-                  return data2;
-                })
-                .select("path")
-                .style("fill", "white")
-                .style("fill-opacity", 0.4)
-                .style("stroke", "white");
+              var selection = d3.select("#g" + element).select("path");
+              selection.datum(function(datum, i) {
+                datum.selected = true;
+                return datum;
+              });
+              renderRegion(selection, d.index==element);
             });
           }
         debounceSidebar();
         })
         .on("dragenter", function(d, i) {
-          if (!d.tracks.has(dragTrack)) {
-            // indicator
-            d3.event.preventDefault();
-            console.log("Drag has entered");
-            console.log(d.ids);
-            d.ids.forEach(function(element) {
-              d3.select("#g" + myVennSets.playlistIndex(element)).select("path")
-                .transition().duration(250)
-                .style("stroke-opacity", 1)
-                .style("stroke-width", 1)
-                .style("fill-opacity", 0.4);
-            });
-          }
+          var writeable = false;
+          d.ids.forEach(function(element) {
+            writeable = writeable || myPlayGraph.playlists[element].ownerID == user_id;
+          });
+          if (d.tracks.has(dragTrack) || !writeable)
+            return;
+          d3.event.preventDefault();
+          console.log("Drag has entered");
+          console.log(d.ids);
+          d.ids.forEach(function(element) {
+            if (!dragSets.hasOwnProperty(element))
+              dragSets[element] = 1;
+            else
+              dragSets[element] += 1;
+            if (myPlayGraph.playlists[element].ownerID == user_id) {
+              var selection = d3.select("#g" + myVennSets.playlistIndex(element)).select("path");
+              renderRegion(selection, true);
+            }
+          });
         })
         .on("dragover", function(d, i) {
-          if (!d.tracks.has(dragTrack)) {
-            d3.event.preventDefault();
-            console.log("Drag is hovering");
-          }
+          var writeable = false;
+          d.ids.forEach(function(element) {
+            writeable = writeable || myPlayGraph.playlists[element].ownerID == user_id;
+          });
+          if (d.tracks.has(dragTrack) || !writeable)
+            return;
+          d3.event.preventDefault();
+          console.log("Drag is hovering");
         })
         .on("dragleave", function(d, i) {
-          if (!d.tracks.has(dragTrack)) {
-            d3.event.preventDefault();
-            console.log("Drag has left");
-            console.log(d.ids);
-            d.ids.forEach(function(element) {
-              d3.select("#g" + myVennSets.playlistIndex(element)).select("path")
-                .transition().duration(250)
-                .style("stroke-opacity", 0)
-                .style("stroke-width", 0)
-                .style("fill-opacity", 0.2);
-            });
-          }
+          var writeable = false;
+          d.ids.forEach(function(element) {
+            writeable = writeable || myPlayGraph.playlists[element].ownerID == user_id;
+          });
+          if (d.tracks.has(dragTrack) || !writeable)
+            return;
+          d3.event.preventDefault();
+          console.log("Drag has left");
+          console.log(d.ids);
+          d.ids.forEach(function(element) {
+            dragSets[element] -= 1;
+            if (dragSets[element] == 0) {
+              var selection = d3.select("#g" + myVennSets.playlistIndex(element)).select("path");
+              renderRegion(selection, false);
+            }
+          });
         })
         .on("drop", function(d, i) {
           var data = d3.event.dataTransfer.getData("trackID");
@@ -339,7 +365,11 @@ if (access_token && (state == null || state !== storedState)) {
             function(el) {
               return myPlayGraph.playlists[el].name
             }).join(", "));
-          d.ids.forEach(function(element) { addTrack(data, element); });
+          d.ids.forEach(function(element) {
+            if (!myPlayGraph.playlists[element].containedTracks.hasOwnProperty(data)
+               && myPlayGraph.playlists[element].ownerID==user_id)
+              addTrack(data, element);
+          });
           d3.event.preventDefault();
         })
         .selectAll("text").style("fill", "white");
@@ -482,7 +512,7 @@ if (access_token && (state == null || state !== storedState)) {
   document.getElementById('login-button').addEventListener('click', function() {
     var client_id = '173e56dc6f4f4f7bac61397e362bd814'; // Your client id
     var redirect_uri = 'http://taichiaritomo.github.io/PlaySet/'; // Your redirect uri
-//    var redirect_uri = 'http://127.0.0.1:62785/'; // Testing URI
+//    var redirect_uri = 'http://127.0.0.1:49809/'; // Testing URI
     var state = generateRandomString(16);
     localStorage.setItem(stateKey, state);
     var scope = 'user-read-private user-library-read playlist-modify-public playlist-read-collaborative playlist-modify-private';
