@@ -512,7 +512,7 @@ if (access_token && (state == null || state !== storedState)) {
   document.getElementById('login-button').addEventListener('click', function() {
 //    var client_id = '173e56dc6f4f4f7bac61397e362bd814'; // Your client id
     var redirect_uri = 'http://taichiaritomo.github.io/PlaySet/'; // Your redirect uri
-    var redirect_uri = 'http://127.0.0.1:49809/'; // Testing URI
+//    var redirect_uri = 'http://127.0.0.1:49809/'; // Testing URI
     var state = generateRandomString(16);
     localStorage.setItem(stateKey, state);
     var scope = 'user-read-private user-library-read playlist-modify-public playlist-read-collaborative playlist-modify-private';
