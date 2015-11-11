@@ -447,7 +447,8 @@ if (access_token && (state == null || state !== storedState)) {
       
       
       // Initialize PlayGraph
-      getPlaylists().done( function(spotifyPlaylistsObject) {
+      getPlaylists()
+        .done(function(spotifyPlaylistsObject) {
 //        console.log(spotifyPlaylistsObject);
         
         myPlayGraph = new PlayGraph();

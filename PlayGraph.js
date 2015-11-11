@@ -4,7 +4,6 @@ function TrackNode(spotifyTrackObject) {
   this.artists = spotifyTrackObject.artists.map(function(element) {
     return element.name;
   }); // array of spotify Artist Objects
-  this.albumArt = spotifyTrackObject.album.images[0].url; // smallest image for album
   this.containingPlaylists = {}; // this.containingPlaylists[\ownerID][\playlistID] -> playlistNode
   this.id = spotifyTrackObject.id;
   this.name = spotifyTrackObject.name;
