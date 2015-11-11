@@ -23,9 +23,9 @@ var venn = venn || {'version' : '0.2.4'};
                 solution = venn.normalizeSolution(solution, orientation);
             }
             var circles = venn.scaleSolution(solution, width, height, padding);
-            console.log("CIRCLES: ");
-            console.log(circles);
-            console.log("");
+//            console.log("CIRCLES: ");
+//            console.log(circles);
+//            console.log("");
             var textCentres = computeTextCentres(circles, data);
 
             // draw out a svg
@@ -62,12 +62,12 @@ var venn = venn || {'version' : '0.2.4'};
                                 'y' : start.y * (1 - t) + end.y * t,
                                 'radius' : start.radius * (1 - t) + end.radius * t};
                     });
-                    console.log("Datum:");
-                    console.log(d);
-                    console.log("Path:");
+//                    console.log("Datum:");
+//                    console.log(d);
+//                    console.log("Path:");
                     var path = venn.intersectionAreaPath(c);
-                    console.log(path);
-                    console.log("");
+//                    console.log(path);
+//                    console.log("");
                     return path;
                 };
             };

@@ -49,29 +49,15 @@
 </head>
 
 <body>
-<!--
-  <div id="hovergram">
-    <div id="playlistbox"></div>
-    <div id="toolkit">
-      <div id="plus-btn"></div>
-      <div id="reverse-btn"></div>
-    </div>
-  </div>
--->
   
   <div class="container">
     
     <div id="login">
-      
-          <img class="render" src="playset2.png"/>
-    <img class="render" src="playset3.png"/>
-    <img class="render" src="playset4.png"/>
-      
-      <div id="entry">
-      <h1><u>PlaySet</u></h1>
-      <p>Anywhere between playlists!</p>
-        <button id="login-button">Log in to Spotify</button></div>
-      
+      <div id="landing">
+        <span id="description">the space between playlists!</span>
+        <img class="render" src="playsetLargeCropped.png"/>
+        <button id="login-button"></button>
+      </div>
     </div>
     
     <div id="loggedin">
@@ -146,36 +132,6 @@
     {{#list items}}{{name}}{{/list}}
   </script>
   
-<!--
-  <script id="playlist-open-1-template" type="text/x-handlebars-template">
-    <h1>{{name}}</h1>
-
-    {{#with tracks}}
-      {{#list items}}
-        <img class="album-artwork" src="{{track.album.images.[2].url}}"/>
-        <div class="info">
-          <span class="track-title">{{track.name}}</span><br>
-          <span class="track-artist">{{#concat track.artists}}{{name}}{{/concat}} - {{track.album.name}}</span>
-        </div>
-      {{/list}}
-    {{/with}}
-  </script>
-  
-  <script id="playlist-open-2-template" type="text/x-handlebars-template">
-    <h1>{{name}}</h1>
-
-    {{#with tracks}}
-      {{#list items}}
-        <img class="album-artwork" src="{{track.album.images.[2].url}}"/>
-        <div class="info">
-          <span class="track-title">{{track.name}}</span><br>
-          <span class="track-artist">{{#concat track.artists}}{{name}}{{/concat}} - {{track.album.name}}</span>
-        </div>
-      {{/list}}
-    {{/with}}
-  </script>
--->
-  
 
   
   <!-- utility methods -->
@@ -186,6 +142,7 @@
   <script src="VennSets.js"></script>
   <!-- App -->
   <script src="app.js"></script>
+  <script src="dumbrandom.js"></script>
 </body>
   
 </html>
