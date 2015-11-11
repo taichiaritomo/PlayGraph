@@ -33,7 +33,7 @@ var access_token = params.access_token,
     state = params.state,
     storedState = localStorage.getItem(stateKey);
 if (access_token && (state == null || state !== storedState)) {
-  window.location = '/PlaySet/';
+  window.location = '/Playset/';
 //  window.location = '';
   console.log('Access token reset');
 } else {
@@ -180,6 +180,11 @@ if (access_token && (state == null || state !== storedState)) {
     function updateSidebar() {
       sidebar.selectAll("li").remove();
       var tracks = (myVennSets.getPlaySet()).values();
+      // No Tracks to Display:
+      if (tracks.length == 0) {
+        sidebar.append("div").html("No tracks selected");
+      }
+      
       for (var i = 0, l = tracks.length; i < l; i++) {
         sidebar
           .datum(tracks[i])
@@ -311,15 +316,17 @@ if (access_token && (state == null || state !== storedState)) {
         debounceSidebar();
         })
         .on("dragenter", function(d, i) {
+          // Allow drag only if at least one playlist that I'm hovering over is editable
+          // and doesn't contain the track already.
           var writeable = false;
           d.ids.forEach(function(element) {
-            writeable = writeable || myPlayGraph.playlists[element].ownerID == user_id;
+            writeable = writeable || myPlayGraph.playlists[element].ownerID == user_id && !myPlayGraph.playlists[element].containedTracks.hasOwnProperty(dragTrack);
           });
-          if (d.tracks.has(dragTrack) || !writeable)
+          if (!writeable)
             return;
           d3.event.preventDefault();
-          console.log("Drag has entered");
-          console.log(d.ids);
+//          console.log("Drag has entered");
+//          console.log(d.ids);
           d.ids.forEach(function(element) {
             if (!dragSets.hasOwnProperty(element))
               dragSets[element] = 1;
@@ -334,23 +341,23 @@ if (access_token && (state == null || state !== storedState)) {
         .on("dragover", function(d, i) {
           var writeable = false;
           d.ids.forEach(function(element) {
-            writeable = writeable || myPlayGraph.playlists[element].ownerID == user_id;
+            writeable = writeable || myPlayGraph.playlists[element].ownerID == user_id && !myPlayGraph.playlists[element].containedTracks.hasOwnProperty(dragTrack);
           });
-          if (d.tracks.has(dragTrack) || !writeable)
+          if (!writeable)
             return;
           d3.event.preventDefault();
-          console.log("Drag is hovering");
+//          console.log("Drag is hovering");
         })
         .on("dragleave", function(d, i) {
           var writeable = false;
           d.ids.forEach(function(element) {
-            writeable = writeable || myPlayGraph.playlists[element].ownerID == user_id;
+            writeable = writeable || myPlayGraph.playlists[element].ownerID == user_id && !myPlayGraph.playlists[element].containedTracks.hasOwnProperty(dragTrack);
           });
-          if (d.tracks.has(dragTrack) || !writeable)
+          if (!writeable)
             return;
           d3.event.preventDefault();
-          console.log("Drag has left");
-          console.log(d.ids);
+//          console.log("Drag has left");
+//          console.log(d.ids);
           d.ids.forEach(function(element) {
             dragSets[element] -= 1;
             if (dragSets[element] == 0) {
@@ -475,6 +482,12 @@ if (access_token && (state == null || state !== storedState)) {
           // Initialize menu
           var ul = d3.select("#menu ul");
           var playlistIDs = Object.keys(myPlayGraph.playlists);
+          
+          // No playlists
+          if (playlistIDs.length == 0) {
+            ul.append("div").html("No playlists to display");
+          }
+          
           for (var i = 0, l = playlistIDs.length; i < l; i++) {
             ul.datum(playlistIDs[i])
               .append("li")
@@ -511,7 +524,7 @@ if (access_token && (state == null || state !== storedState)) {
   }
   document.getElementById('login-button').addEventListener('click', function() {
     var client_id = '173e56dc6f4f4f7bac61397e362bd814'; // Your client id
-    var redirect_uri = 'http://taichiaritomo.github.io/PlaySet/'; // Your redirect uri
+    var redirect_uri = 'http://taichiaritomo.github.io/Playset/'; // Your redirect uri
 //    var redirect_uri = 'http://127.0.0.1:49809/'; // Testing URI
     var state = generateRandomString(16);
     localStorage.setItem(stateKey, state);
