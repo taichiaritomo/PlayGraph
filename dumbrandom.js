@@ -1,7 +1,9 @@
 var buttonTexts = [
-  "great, what does that mean.",
-  "what.",
-  "cool, let me try."
+  "what does it mean.",
+  "cool, let me try.",
+  "i like space.",
+  "i can dig that.",
+  "i have playlists."
   ];
 
 var randomIndex = Math.floor(Math.random()*buttonTexts.length);

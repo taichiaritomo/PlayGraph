@@ -33,8 +33,8 @@ var access_token = params.access_token,
     state = params.state,
     storedState = localStorage.getItem(stateKey);
 if (access_token && (state == null || state !== storedState)) {
-  window.location = '/Playset/';
-//  window.location = '';
+//  window.location = '/Playset/';
+  window.location = '';
   console.log('Access token reset');
 } else {
   localStorage.removeItem(stateKey);
@@ -139,11 +139,6 @@ if (access_token && (state == null || state !== storedState)) {
     // Highlight a venn region in UI
     function renderRegion(selection, highlight) {
       var datum = selection.datum();
-//      console.log("EVENT RECEIVED:");
-//      console.log("datum: ");
-//      console.log(datum);
-//      console.log("highlight: " + highlight);
-//      console.log("");
       var fillOpacity = (highlight ? 0.4 : (datum.selected ? 0.2 : 0)),
           strokeOpacity = ((datum.ids.length==1 && (highlight || !datum.selected)) || (datum.ids.length>1 && highlight && datum.selected) ? 1 : 0), 
           strokeWidth = ((datum.ids.length==1 && (highlight || !datum.selected)) || (datum.ids.length>1 && highlight && datum.selected) ? 1 : 0),
@@ -170,8 +165,10 @@ if (access_token && (state == null || state !== storedState)) {
       }
     }
     
-    var dragTrack = null;
+    // Global variables for drag operations
+    var dragTrack = null; // Track ID of track being dragged
     var dragSets = {};
+    var dragImg = null;   // dragImage that appears under cursor during drag
     
     function debounceSidebar() {
       _.debounce(updateSidebar, 1000)();
@@ -182,7 +179,7 @@ if (access_token && (state == null || state !== storedState)) {
       var tracks = (myVennSets.getPlaySet()).values();
       // No Tracks to Display:
       if (tracks.length == 0) {
-        sidebar.append("div").html("No tracks selected");
+        sidebar.append("li").html("No tracks selected...");
       }
       
       for (var i = 0, l = tracks.length; i < l; i++) {
@@ -212,15 +209,13 @@ if (access_token && (state == null || state !== storedState)) {
             });
           })
           .on("dragstart", function(d, i) {
-//            console.log("Drag start, data: " + d);
             d3.event.dataTransfer.setData("trackID", d);
             d3.event.dataTransfer.effectAllowed = "copy";
-            var dragImg = document.createElement('div');
+            dragImg = document.createElement('div');
             dragImg.setAttribute("class", "dragimg");
             dragImg.innerHTML = 'Add "' + myPlayGraph.tracks[d].name + '" to ...';
             document.body.appendChild(dragImg);
             d3.event.dataTransfer.setDragImage(dragImg, 0, 0);
-            
             dragTrack = d;
             Object.keys(myPlayGraph.tracks[d].containingPlaylists).forEach(function(element) {
               dragSets[element] = 1;
@@ -237,13 +232,13 @@ if (access_token && (state == null || state !== storedState)) {
       }
       $("#sidebar").animate({ scrollTop: $("#sidebar")[0].scrollHeight}, 500);
 //       PLAYBUTTON IFRAME UPDATE
-      if (tracks.length > 0) {
-        iframe
-          .attr("src", "https://embed.spotify.com/?uri=spotify:trackset:PLAYSET:" + tracks.join(","));
-      } else {
-        iframe
-          .attr("src", "");
-      }
+//      if (tracks.length > 0) {
+//        iframe
+//          .attr("src", "https://embed.spotify.com/?uri=spotify:trackset:PLAYSET:" + tracks.join(","));
+//      } else {
+//        iframe
+//          .attr("src", "");
+//      }
     }
     
     
@@ -322,11 +317,8 @@ if (access_token && (state == null || state !== storedState)) {
           d.ids.forEach(function(element) {
             writeable = writeable || myPlayGraph.playlists[element].ownerID == user_id && !myPlayGraph.playlists[element].containedTracks.hasOwnProperty(dragTrack);
           });
-          if (!writeable)
-            return;
+          if (!writeable) return;
           d3.event.preventDefault();
-//          console.log("Drag has entered");
-//          console.log(d.ids);
           d.ids.forEach(function(element) {
             if (!dragSets.hasOwnProperty(element))
               dragSets[element] = 1;
@@ -343,10 +335,8 @@ if (access_token && (state == null || state !== storedState)) {
           d.ids.forEach(function(element) {
             writeable = writeable || myPlayGraph.playlists[element].ownerID == user_id && !myPlayGraph.playlists[element].containedTracks.hasOwnProperty(dragTrack);
           });
-          if (!writeable)
-            return;
+          if (!writeable) return;
           d3.event.preventDefault();
-//          console.log("Drag is hovering");
         })
         .on("dragleave", function(d, i) {
           var writeable = false;
@@ -356,8 +346,6 @@ if (access_token && (state == null || state !== storedState)) {
           if (!writeable)
             return;
           d3.event.preventDefault();
-//          console.log("Drag has left");
-//          console.log(d.ids);
           d.ids.forEach(function(element) {
             dragSets[element] -= 1;
             if (dragSets[element] == 0) {
@@ -416,10 +404,6 @@ if (access_token && (state == null || state !== storedState)) {
       if (!action)
         return false; // can't remove last playlist
       updateChart();
-//      if (!sidebar.selectAll("ul li").empty()) {
-//        updateSidebar();
-//      }
-//      _.debounce(updateSidebar, 1000);
       debounceSidebar();
       return true;
     }
@@ -440,18 +424,16 @@ if (access_token && (state == null || state !== storedState)) {
     // GET User Profile Information to test API.
     ajaxGet('https://api.spotify.com/v1/me')
     .done( function(response) {
-//      userProfilePlaceholder.innerHTML = userProfileTemplate(response);
       console.log(response);
       user_id = response.id;
       console.log("User ID = " + user_id);
       
       
       // Initialize PlayGraph
-      getPlaylists()
-        .done(function(spotifyPlaylistsObject) {
-//        console.log(spotifyPlaylistsObject);
-        
+      getPlaylists().done(function(spotifyPlaylistsObject) {
         myPlayGraph = new PlayGraph();
+        
+        // Fill array of promises
         var promises = [];
         for (var i = 0, l = spotifyPlaylistsObject.items.length; i < l; i++) {
           var simplePL = spotifyPlaylistsObject.items[i];
@@ -479,7 +461,6 @@ if (access_token && (state == null || state !== storedState)) {
           myVennSets = new VennSets(vsInput);
           updateChart();
           
-
           // Initialize menu
           var ul = d3.select("#menu ul");
           var playlistIDs = Object.keys(myPlayGraph.playlists);
@@ -489,6 +470,7 @@ if (access_token && (state == null || state !== storedState)) {
             ul.append("div").html("No playlists to display");
           }
           
+          // Fill menu and update sidebar
           for (var i = 0, l = playlistIDs.length; i < l; i++) {
             ul.datum(playlistIDs[i])
               .append("li")
@@ -499,34 +481,29 @@ if (access_token && (state == null || state !== storedState)) {
                 d3.select(this).classed("selected", !d3.select(this).classed("selected"));
               });
           }
-          
           updateSidebar();
           
-          $(window).resize(_.debounce(resizeChart, 400));
-          
+          // Menu animations
           d3.select("#plus-btn").on("click", function(d, i) {
             menu.classed("closed", !menu.classed("closed"));
             plusbtn.classed("rotated", !plusbtn.classed("rotated"));
           });
-
-          // Initialize priority score data structures
-//          for (playlistID in Object.keys(myPlayGraph.playlists)) {
-//            playlistScore[playlistID] = 1;
-//          }
+                 
+          // Redraw chart on debounced resize
+          $(window).resize(_.debounce(resizeChart, 400));
         });
       }).fail( function(errorResponse) {
         window.alert(errorResponse);
       });
     });
-    
   } else { // login failed
       $('#login').show();
       $('#loggedin').hide();
   }
   document.getElementById('login-button').addEventListener('click', function() {
     var client_id = '173e56dc6f4f4f7bac61397e362bd814'; // Your client id
-    var redirect_uri = 'http://taichiaritomo.github.io/Playset/'; // Your redirect uri
-//    var redirect_uri = 'http://127.0.0.1:49809/'; // Testing URI
+//    var redirect_uri = 'http://taichiaritomo.github.io/Playset/'; // Your redirect uri
+    var redirect_uri = 'http://127.0.0.1:57841/PlayGraph/'; // Testing URI
     var state = generateRandomString(16);
     localStorage.setItem(stateKey, state);
     var scope = 'user-read-private user-library-read playlist-modify-public playlist-read-collaborative playlist-modify-private';

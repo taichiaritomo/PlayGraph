@@ -90,7 +90,7 @@ text {
   
   transform: scale(1, 1) rotate(45deg);
   transform-origin: 20, 20;
-  transition: transform 0.5s cubic-bezier(.87,-.41,.19,1.44);
+  transition: transform 0.25s cubic-bezier(.87,-.41,.19,1.44);
 }
 
 #plus-btn:hover {
@@ -121,7 +121,7 @@ text {
   overflow-x: hidden;
   overflow-y: scroll;
   position: absolute;
-  transition: all 0.5s cubic-bezier(.87,-.41,.19,1.44);
+  transition: all 0.25s ease-in-out;
   width: 180px;
 }
 

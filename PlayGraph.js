@@ -14,7 +14,8 @@ function TrackNode(spotifyTrackObject) {
 // Input: Spotify Playlist Object
 function PlaylistNode(spotifyPlaylistObject) {
   this.containedTracks = {}; //this.containedTracks[trackID] -> trackNode
-  this.image = spotifyPlaylistObject.images[0].url; // smallest image for playlist
+//    console.log(spotifyPlaylistObject);
+//  this.image = spotifyPlaylistObject.images[0].url; // smallest image for playlist
   this.name = spotifyPlaylistObject.name;
   this.ownerID = spotifyPlaylistObject.owner.id;
   for (var i = 0; i < spotifyPlaylistObject.tracks.items.length; i++) {

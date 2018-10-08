@@ -23,9 +23,6 @@ var venn = venn || {'version' : '0.2.4'};
                 solution = venn.normalizeSolution(solution, orientation);
             }
             var circles = venn.scaleSolution(solution, width, height, padding);
-//            console.log("CIRCLES: ");
-//            console.log(circles);
-//            console.log("");
             var textCentres = computeTextCentres(circles, data);
 
             // draw out a svg
